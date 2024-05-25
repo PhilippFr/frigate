@@ -7,7 +7,7 @@ from pathlib import Path
 
 from peewee import fn
 
-from frigate.config import FrigateConfig
+from frigate.config import FrigateConfig, RecordConfig
 from frigate.const import RECORD_DIR
 from frigate.models import Event, Recordings
 from frigate.util.builtin import clear_and_unlink
@@ -87,10 +87,11 @@ class StorageMaintainer(threading.Thread):
             [b["bandwidth"] for b in self.camera_storage_stats.values()]
         )
         remaining_storage = round(shutil.disk_usage(RECORD_DIR).free / pow(2, 20), 1)
+        used_storage = round(shutil.disk_usage(RECORD_DIR).used / pow(2, 20), 1)
         logger.debug(
             f"Storage cleanup check: {hourly_bandwidth} hourly with remaining storage: {remaining_storage}."
         )
-        return remaining_storage < hourly_bandwidth
+        return remaining_storage < hourly_bandwidth or used_storage + hourly_bandwidth > RecordConfig.maximum_storage
 
     def reduce_storage_consumption(self) -> None:
         """Remove oldest hour of recordings."""

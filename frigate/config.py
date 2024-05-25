@@ -350,6 +350,10 @@ class RecordConfig(FrigateBaseModel):
     enabled_in_config: Optional[bool] = Field(
         None, title="Keep track of original state of recording."
     )
+    maximum_storage: Optional[float] = Field(
+        None, title="Maximum storage size to use in megabytes."
+    )
+
 
 
 class MotionConfig(FrigateBaseModel):
@@ -1215,7 +1219,7 @@ def verify_recording_retention(camera_config: CameraConfig) -> None:
     }
 
     if (
-        camera_config.record.retain.days != 0
+        (camera_config.record.retain.days != 0 or camera_config.record.retain.storage != 0)
         and rank_map[camera_config.record.retain.mode]
         > rank_map[camera_config.record.events.retain.mode]
     ):
